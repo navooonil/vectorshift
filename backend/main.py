@@ -1,6 +1,7 @@
 import os
 import asyncio
 import re
+import base64
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -320,18 +321,15 @@ async def execute_pipeline(request: Request):
                     result = f"🔊 [MOCK VOICE: {voice.upper()}]\n\"{text_to_speak[:100]}...\"\n\n(Connect OpenAI API Key for real audio generation)"
                 else:
                     client = openai.AsyncOpenAI(api_key=api_key)
-                    # Clean filename to avoid issues
-                    filename = f"audio_{node_id}.mp3"
-                    filepath = os.path.join("static", "audio", filename)
-                    
                     response = await client.audio.speech.create(
                         model="tts-1",
                         voice=voice,
                         input=text_to_speak
                     )
                     
-                    await asyncio.to_thread(response.write_to_file, filepath)
-                    result = f"AUDIO_URL:http://localhost:8000/static/audio/{filename}"
+                    audio_bytes = response.read()
+                    base64_audio = base64.b64encode(audio_bytes).decode('utf-8')
+                    result = f"AUDIO_URL:data:audio/mp3;base64,{base64_audio}"
             except Exception as e:
                 result = f"Speech Generation Error: {str(e)}"
             

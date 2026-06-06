@@ -75,13 +75,16 @@ export const SubmitButton = () => {
             updateNodeField(node.id, 'result', null);
         });
 
+        // Determine API URL base dynamically for local development vs production Vercel
+        const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : '');
+
         try {
             // ---------------------------------------------------------
             // PART 4 REQUIREMENT: Pipeline Parsing & Validation
             // We hit the /pipelines/parse endpoint to validate the graph
             // and get the mathematically calculated DAG stats.
             // ---------------------------------------------------------
-            const parseResponse = await fetch('http://localhost:8000/pipelines/parse', {
+            const parseResponse = await fetch(`${API_BASE_URL}/pipelines/parse`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nodes, edges })
@@ -103,7 +106,7 @@ export const SubmitButton = () => {
             // EXTENDED FEATURE: The Visual Execution Engine
             // If the graph is a valid DAG, we hit the execution endpoint.
             // ---------------------------------------------------------
-            const executeResponse = await fetch('http://localhost:8000/pipelines/execute', {
+            const executeResponse = await fetch(`${API_BASE_URL}/pipelines/execute`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nodes, edges })
